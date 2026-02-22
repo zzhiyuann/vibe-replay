@@ -50,7 +50,9 @@ def _prepare_events_for_template(events: list[Event]) -> list[dict[str, Any]]:
 
 
 def _prepare_replay_for_template(
-    replay: SessionReplay, events: list[Event]
+    replay: SessionReplay,
+    events: list[Event],
+    share_url: str | None = None,
 ) -> dict[str, Any]:
     """Prepare all replay data for the HTML template."""
     event_dicts = _prepare_events_for_template(events)
@@ -92,7 +94,7 @@ def _prepare_replay_for_template(
     decision_set = set(replay.key_decision_indices)
     turning_set = set(replay.turning_point_indices)
 
-    return {
+    result = {
         "metadata": {
             "session_id": replay.metadata.session_id,
             "project": replay.metadata.project or "Unknown Project",
@@ -109,22 +111,29 @@ def _prepare_replay_for_template(
         "statistics": replay.statistics,
         "decision_indices": list(decision_set),
         "turning_indices": list(turning_set),
+        "share_url": share_url,
     }
+    return result
 
 
-def render_html(replay: SessionReplay, events: list[Event]) -> str:
+def render_html(
+    replay: SessionReplay,
+    events: list[Event],
+    share_url: str | None = None,
+) -> str:
     """Render an interactive HTML replay page.
 
     Args:
         replay: Analyzed session replay data.
         events: Raw events for the session.
+        share_url: Optional public URL for this replay.
 
     Returns:
         Self-contained HTML string.
     """
     env = _get_jinja_env()
     template = env.get_template("replay.html")
-    data = _prepare_replay_for_template(replay, events)
+    data = _prepare_replay_for_template(replay, events, share_url=share_url)
     return template.render(**data)
 
 

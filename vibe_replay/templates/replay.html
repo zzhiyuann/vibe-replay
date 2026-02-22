@@ -539,6 +539,262 @@ body {
 .phase-block:nth-child(4) { animation-delay: 0.15s; }
 .phase-block:nth-child(5) { animation-delay: 0.20s; }
 
+/* ---- PHASE MINIMAP ---- */
+.minimap {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.minimap-bar {
+  display: flex;
+  height: 28px;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  margin-top: 0.75rem;
+}
+
+.minimap-segment {
+  position: relative;
+  min-width: 8px;
+  transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.minimap-segment:hover {
+  opacity: 0.8;
+}
+.minimap-segment .minimap-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 4px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.minimap-segment.exploration    { background: var(--accent); }
+.minimap-segment.implementation { background: var(--success); }
+.minimap-segment.debugging      { background: var(--danger); }
+.minimap-segment.testing        { background: var(--warning); }
+.minimap-segment.refactoring    { background: var(--purple); }
+.minimap-segment.configuration  { background: var(--orange); }
+.minimap-segment.documentation  { background: var(--cyan); }
+.minimap-segment.unknown        { background: var(--text-muted); }
+
+.minimap-legend {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 0.4rem;
+  padding: 0 0.25rem;
+}
+.minimap-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+.minimap-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* ---- SEARCH BAR ---- */
+.search-bar {
+  position: relative;
+  margin-bottom: 0.75rem;
+}
+.search-bar input {
+  width: 100%;
+  padding: 0.5rem 0.75rem 0.5rem 2rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.search-bar input:focus {
+  border-color: var(--accent);
+}
+.search-bar input::placeholder {
+  color: var(--text-muted);
+}
+.search-bar::before {
+  content: '\1F50D';
+  position: absolute;
+  left: 0.6rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.8rem;
+}
+.search-results-count {
+  position: absolute;
+  right: 0.6rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+/* ---- PLAYBACK CONTROLS ---- */
+.playback-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.playback-btn {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 0.35rem 0.7rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.playback-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent);
+}
+.playback-btn.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.playback-progress {
+  flex: 1;
+  height: 4px;
+  background: var(--bg-tertiary);
+  border-radius: 2px;
+  position: relative;
+  cursor: pointer;
+}
+.playback-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width 0.3s;
+  width: 0%;
+}
+
+.playback-counter {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-family: 'SF Mono', SFMono-Regular, ui-monospace, Menlo, monospace;
+  min-width: 60px;
+  text-align: right;
+}
+
+.speed-select {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+/* Highlight current playback event */
+.event-item.playback-current {
+  background: rgba(88,166,255,0.1);
+  border-left: 3px solid var(--accent);
+  padding-left: calc(3rem - 3px);
+}
+
+/* ---- SYNTAX-HIGHLIGHTED DIFFS ---- */
+.diff-block {
+  margin-top: 0.5rem;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.diff-file-header {
+  padding: 0.4rem 0.75rem;
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.75rem;
+  font-family: 'SF Mono', SFMono-Regular, ui-monospace, Menlo, monospace;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.diff-content {
+  padding: 0;
+  font-size: 0.75rem;
+  font-family: 'SF Mono', SFMono-Regular, ui-monospace, Menlo, monospace;
+  overflow-x: auto;
+}
+
+.diff-line {
+  display: flex;
+  white-space: pre;
+  line-height: 1.5;
+  min-height: 1.5em;
+}
+
+.diff-line-num {
+  min-width: 40px;
+  padding: 0 8px;
+  text-align: right;
+  color: var(--text-muted);
+  user-select: none;
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+.diff-line-content {
+  flex: 1;
+  padding: 0 8px;
+}
+
+.diff-add {
+  background: var(--diff-add-bg);
+}
+.diff-add .diff-line-content { color: var(--diff-add-text); }
+.diff-add .diff-line-content::before { content: '+'; margin-right: 4px; }
+
+.diff-del {
+  background: var(--diff-del-bg);
+}
+.diff-del .diff-line-content { color: var(--diff-del-text); }
+.diff-del .diff-line-content::before { content: '-'; margin-right: 4px; }
+
+.diff-context .diff-line-content {
+  color: var(--text-secondary);
+}
+.diff-context .diff-line-content::before { content: ' '; margin-right: 4px; }
+
+/* Syntax highlighting (CSS-based, light) */
+.diff-line-content .kw { color: var(--purple); }  /* keywords */
+.diff-line-content .str { color: var(--success); } /* strings */
+.diff-line-content .cmt { color: var(--text-muted); font-style: italic; } /* comments */
+.diff-line-content .num { color: var(--orange); }  /* numbers */
+.diff-line-content .fn { color: var(--accent); }   /* function names */
+
 /* ---- NO-DATA STATE ---- */
 .empty-state {
   text-align: center;
@@ -565,6 +821,31 @@ body {
     </div>
   </div>
 </header>
+
+<!-- ===== PHASE MINIMAP ===== -->
+{% if phases %}
+<div class="minimap">
+  <div class="minimap-bar">
+    {% for phase in phases %}
+    <div class="minimap-segment {{ phase.phase }}"
+         style="flex: {{ phase.event_count }};"
+         title="{{ phase.phase_display }} ({{ phase.event_count }} events, {{ phase.start_time }}–{{ phase.end_time }})"
+         onclick="jumpToPhase({{ loop.index0 }})">
+      {% if phase.event_count > 5 %}<span class="minimap-label">{{ phase.phase_display }}</span>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  <div class="minimap-legend">
+    <div class="minimap-legend-item"><div class="minimap-legend-dot" style="background:var(--accent)"></div>Explore</div>
+    <div class="minimap-legend-item"><div class="minimap-legend-dot" style="background:var(--success)"></div>Build</div>
+    <div class="minimap-legend-item"><div class="minimap-legend-dot" style="background:var(--danger)"></div>Debug</div>
+    <div class="minimap-legend-item"><div class="minimap-legend-dot" style="background:var(--warning)"></div>Test</div>
+    <div class="minimap-legend-item"><div class="minimap-legend-dot" style="background:var(--purple)"></div>Refactor</div>
+    <div class="minimap-legend-item"><div class="minimap-legend-dot" style="background:var(--orange)"></div>Config</div>
+    <div class="minimap-legend-item"><div class="minimap-legend-dot" style="background:var(--cyan)"></div>Docs</div>
+  </div>
+</div>
+{% endif %}
 
 <!-- ===== MAIN ===== -->
 <div class="main">
@@ -657,6 +938,29 @@ body {
     </div>
     {% endif %}
 
+    <!-- Search -->
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search events (file names, tools, summaries...)" oninput="searchEvents(this.value)">
+      <span class="search-results-count" id="searchCount"></span>
+    </div>
+
+    <!-- Playback Controls -->
+    <div class="playback-controls">
+      <button class="playback-btn" id="playBtn" onclick="togglePlayback()">&#9654; Play</button>
+      <button class="playback-btn" onclick="playbackStep(-1)">&#9664;</button>
+      <button class="playback-btn" onclick="playbackStep(1)">&#9654;</button>
+      <div class="playback-progress" onclick="seekPlayback(event)">
+        <div class="playback-progress-fill" id="playbackFill"></div>
+      </div>
+      <span class="playback-counter" id="playbackCounter">0 / {{ metadata.event_count }}</span>
+      <select class="speed-select" id="speedSelect" onchange="setPlaybackSpeed(this.value)">
+        <option value="2000">0.5x</option>
+        <option value="1000" selected>1x</option>
+        <option value="500">2x</option>
+        <option value="250">4x</option>
+      </select>
+    </div>
+
     <!-- Filters -->
     <div class="filters">
       <button class="filter-btn active" data-filter="all" onclick="filterEvents('all', this)">All</button>
@@ -718,10 +1022,18 @@ body {
               {% endif %}
               <div class="event-details">
                 {% if event.has_diff %}
-                <div class="diff">
-                  {% for line in event.code_diff.split('\n') %}
-                  <div class="diff-line {% if line.startswith('+') %}diff-add{% elif line.startswith('-') %}diff-del{% endif %}">{{ line }}</div>
-                  {% endfor %}
+                <div class="diff-block">
+                  {% if event.files_affected %}
+                  <div class="diff-file-header">{{ event.files_affected[0] }}</div>
+                  {% endif %}
+                  <div class="diff-content">
+                    {% for line in event.code_diff.split('\n') %}
+                    <div class="diff-line {% if line.startswith('+') %}diff-add{% elif line.startswith('-') %}diff-del{% else %}diff-context{% endif %}">
+                      <span class="diff-line-num">{{ loop.index }}</span>
+                      <span class="diff-line-content">{{ line }}</span>
+                    </div>
+                    {% endfor %}
+                  </div>
                 </div>
                 {% else %}
                 <pre>{{ event.details_json }}</pre>
@@ -751,69 +1063,184 @@ body {
 <script>
 /* Theme toggle */
 function toggleTheme() {
-  const html = document.documentElement;
-  const current = html.getAttribute('data-theme');
-  const next = current === 'dark' ? 'light' : 'dark';
+  var html = document.documentElement;
+  var current = html.getAttribute('data-theme');
+  var next = current === 'dark' ? 'light' : 'dark';
   html.setAttribute('data-theme', next);
   try { localStorage.setItem('vibe-replay-theme', next); } catch(e) {}
 }
-
-/* Restore theme from localStorage */
 (function() {
   try {
-    const saved = localStorage.getItem('vibe-replay-theme');
+    var saved = localStorage.getItem('vibe-replay-theme');
     if (saved) document.documentElement.setAttribute('data-theme', saved);
   } catch(e) {}
 })();
 
 /* Phase expand/collapse */
 function togglePhase(header) {
-  const block = header.closest('.phase-block');
-  block.classList.toggle('open');
+  header.closest('.phase-block').classList.toggle('open');
 }
 
-/* Event expand/collapse (show details) */
+/* Event expand/collapse */
 function toggleEvent(el) {
   el.classList.toggle('expanded');
 }
 
-/* Filter events */
+/* ---- MINIMAP: Jump to phase ---- */
+function jumpToPhase(idx) {
+  var blocks = document.querySelectorAll('.phase-block');
+  if (blocks[idx]) {
+    blocks[idx].classList.add('open');
+    blocks[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+/* ---- FILTER EVENTS ---- */
 function filterEvents(type, btn) {
-  // Update button states
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
   btn.classList.add('active');
-
-  const decisionIndices = new Set({{ decision_indices | tojson }});
-  const allEvents = document.querySelectorAll('.event-item');
-
-  allEvents.forEach(ev => {
-    const evType = ev.getAttribute('data-event-type');
-    const evIdx = parseInt(ev.getAttribute('data-index'));
-    let show = false;
-
-    if (type === 'all') {
-      show = true;
-    } else if (type === 'decisions') {
-      show = decisionIndices.has(evIdx);
-    } else {
-      show = evType === type;
-    }
-
+  var decisionIndices = new Set({{ decision_indices | tojson }});
+  document.querySelectorAll('.event-item').forEach(function(ev) {
+    var evType = ev.getAttribute('data-event-type');
+    var evIdx = parseInt(ev.getAttribute('data-index'));
+    var show = type === 'all' || (type === 'decisions' ? decisionIndices.has(evIdx) : evType === type);
     ev.style.display = show ? '' : 'none';
   });
-
-  // Show/hide phase blocks that have no visible events
-  document.querySelectorAll('.phase-block').forEach(block => {
-    const visibleEvents = block.querySelectorAll('.event-item:not([style*="display: none"])');
-    block.style.display = visibleEvents.length > 0 ? '' : 'none';
+  document.querySelectorAll('.phase-block').forEach(function(block) {
+    block.style.display = block.querySelectorAll('.event-item:not([style*="display: none"])').length > 0 ? '' : 'none';
   });
 }
 
-/* Open first phase by default if there are few phases */
+/* ---- SEARCH ---- */
+function searchEvents(query) {
+  var q = query.toLowerCase().trim();
+  var counter = document.getElementById('searchCount');
+  if (!q) {
+    document.querySelectorAll('.event-item').forEach(function(ev) { ev.style.display = ''; });
+    document.querySelectorAll('.phase-block').forEach(function(b) { b.style.display = ''; });
+    counter.textContent = '';
+    return;
+  }
+  var matches = 0;
+  document.querySelectorAll('.event-item').forEach(function(ev) {
+    var text = (ev.textContent || '').toLowerCase();
+    var show = text.indexOf(q) >= 0;
+    ev.style.display = show ? '' : 'none';
+    if (show) matches++;
+  });
+  document.querySelectorAll('.phase-block').forEach(function(block) {
+    var vis = block.querySelectorAll('.event-item:not([style*="display: none"])').length > 0;
+    block.style.display = vis ? '' : 'none';
+    if (vis) block.classList.add('open');
+  });
+  counter.textContent = matches + ' match' + (matches !== 1 ? 'es' : '');
+}
+
+/* ---- PLAYBACK ---- */
+var playbackState = { playing: false, current: -1, timer: null, speed: 1000 };
+
+function getAllVisibleEvents() {
+  return Array.from(document.querySelectorAll('.event-item:not([style*="display: none"])'));
+}
+
+function updatePlaybackUI() {
+  var events = getAllVisibleEvents();
+  var total = events.length;
+  var cur = playbackState.current + 1;
+  document.getElementById('playbackCounter').textContent = cur + ' / ' + total;
+  document.getElementById('playbackFill').style.width = total > 0 ? (cur / total * 100) + '%' : '0%';
+  document.querySelectorAll('.playback-current').forEach(function(el) { el.classList.remove('playback-current'); });
+  if (playbackState.current >= 0 && playbackState.current < events.length) {
+    var ev = events[playbackState.current];
+    ev.classList.add('playback-current');
+    var block = ev.closest('.phase-block');
+    if (block) block.classList.add('open');
+    ev.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+function playbackStep(dir) {
+  var events = getAllVisibleEvents();
+  if (events.length === 0) return;
+  playbackState.current = Math.max(-1, Math.min(events.length - 1, playbackState.current + dir));
+  updatePlaybackUI();
+}
+
+function togglePlayback() {
+  var btn = document.getElementById('playBtn');
+  if (playbackState.playing) {
+    clearInterval(playbackState.timer);
+    playbackState.playing = false;
+    btn.textContent = '\u25B6 Play';
+    btn.classList.remove('active');
+  } else {
+    playbackState.playing = true;
+    btn.textContent = '\u23F8 Pause';
+    btn.classList.add('active');
+    if (playbackState.current >= getAllVisibleEvents().length - 1) {
+      playbackState.current = -1;
+    }
+    playbackState.timer = setInterval(function() {
+      var events = getAllVisibleEvents();
+      if (playbackState.current >= events.length - 1) {
+        togglePlayback();
+        return;
+      }
+      playbackStep(1);
+    }, playbackState.speed);
+  }
+}
+
+function setPlaybackSpeed(ms) {
+  playbackState.speed = parseInt(ms);
+  if (playbackState.playing) {
+    clearInterval(playbackState.timer);
+    playbackState.timer = setInterval(function() {
+      if (playbackState.current >= getAllVisibleEvents().length - 1) {
+        togglePlayback();
+        return;
+      }
+      playbackStep(1);
+    }, playbackState.speed);
+  }
+}
+
+function seekPlayback(e) {
+  var bar = e.currentTarget;
+  var rect = bar.getBoundingClientRect();
+  var pct = (e.clientX - rect.left) / rect.width;
+  var events = getAllVisibleEvents();
+  playbackState.current = Math.floor(pct * events.length);
+  updatePlaybackUI();
+}
+
+/* ---- KEYBOARD SHORTCUTS ---- */
+document.addEventListener('keydown', function(e) {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  switch(e.key) {
+    case 'j': playbackStep(1); break;
+    case 'k': playbackStep(-1); break;
+    case ' ':
+      e.preventDefault();
+      togglePlayback();
+      break;
+    case '/':
+      e.preventDefault();
+      document.getElementById('searchInput').focus();
+      break;
+    case 'Escape':
+      document.getElementById('searchInput').blur();
+      document.getElementById('searchInput').value = '';
+      searchEvents('');
+      break;
+  }
+});
+
+/* Open first phase(s) by default */
 (function() {
-  const phases = document.querySelectorAll('.phase-block');
+  var phases = document.querySelectorAll('.phase-block');
   if (phases.length <= 5) {
-    phases.forEach(p => p.classList.add('open'));
+    phases.forEach(function(p) { p.classList.add('open'); });
   } else if (phases.length > 0) {
     phases[0].classList.add('open');
   }

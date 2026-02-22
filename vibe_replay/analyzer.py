@@ -140,11 +140,13 @@ def _identify_phase_runs(events: list[Event]) -> list[TimelinePhase]:
         )
     )
 
-    # Merge very short runs (< 3 events) into neighbors
+    # Aggressive merging to reduce fragmentation
+    # Step 1: Absorb tiny runs (< 3 events or < 2 min) into neighbors
     merged: list[TimelinePhase] = []
     for run in runs:
-        if merged and run.event_count < 3 and merged[-1].phase == run.phase:
-            # Extend previous run
+        run_duration = (run.end_time - run.start_time).total_seconds()
+        if merged and (run.event_count < 3 or run_duration < 120):
+            # Absorb into previous phase
             prev = merged[-1]
             merged[-1] = TimelinePhase(
                 phase=prev.phase,
@@ -155,22 +157,60 @@ def _identify_phase_runs(events: list[Event]) -> list[TimelinePhase]:
                 event_count=prev.event_count + run.event_count,
                 key_events=prev.key_events + run.key_events,
             )
-        elif merged and run.event_count < 2:
-            # Absorb tiny runs into previous
-            prev = merged[-1]
-            merged[-1] = TimelinePhase(
+        else:
+            merged.append(run)
+
+    # Step 2: If still too many phases, merge adjacent same-type phases
+    consolidated: list[TimelinePhase] = []
+    for run in merged:
+        if consolidated and consolidated[-1].phase == run.phase:
+            prev = consolidated[-1]
+            consolidated[-1] = TimelinePhase(
                 phase=prev.phase,
                 start_index=prev.start_index,
                 end_index=run.end_index,
                 start_time=prev.start_time,
                 end_time=run.end_time,
                 event_count=prev.event_count + run.event_count,
-                key_events=prev.key_events,
+                key_events=prev.key_events + run.key_events,
             )
         else:
-            merged.append(run)
+            consolidated.append(run)
 
-    return merged
+    # Step 3: Target max 4-8 phases for sessions under 60 min
+    total_duration = 0
+    if consolidated:
+        total_duration = (consolidated[-1].end_time - consolidated[0].start_time).total_seconds()
+    max_phases = 8 if total_duration > 3600 else 6
+    while len(consolidated) > max_phases:
+        # Find the smallest phase and merge it with its smaller neighbor
+        min_idx = min(range(len(consolidated)), key=lambda i: consolidated[i].event_count)
+        if min_idx == 0:
+            merge_with = 1
+        elif min_idx == len(consolidated) - 1:
+            merge_with = min_idx - 1
+        else:
+            # Merge with the smaller neighbor
+            left = consolidated[min_idx - 1].event_count
+            right = consolidated[min_idx + 1].event_count
+            merge_with = min_idx - 1 if left <= right else min_idx + 1
+        a, b = sorted([min_idx, merge_with])
+        pa, pb = consolidated[a], consolidated[b]
+        # Keep the phase type of the larger one
+        keep_phase = pa.phase if pa.event_count >= pb.event_count else pb.phase
+        new = TimelinePhase(
+            phase=keep_phase,
+            start_index=pa.start_index,
+            end_index=pb.end_index,
+            start_time=pa.start_time,
+            end_time=pb.end_time,
+            event_count=pa.event_count + pb.event_count,
+            key_events=pa.key_events + pb.key_events,
+        )
+        consolidated[a] = new
+        del consolidated[b]
+
+    return consolidated
 
 
 def _generate_phase_summaries(
@@ -438,6 +478,49 @@ def _format_duration(seconds: float) -> str:
         return f"{hours}h {minutes}m"
 
 
+def _detect_project_name(events: list[Event]) -> str:
+    """Auto-detect project name from event file paths and working directories."""
+    # Collect all absolute file paths from events
+    all_paths: list[str] = []
+    for e in events:
+        for p in e.files_affected:
+            if p.startswith("/"):
+                all_paths.append(p)
+
+    if not all_paths:
+        return ""
+
+    # Count project-level directories
+    # Look for paths like /Users/X/projects/PROJECT/ or /home/X/PROJECT/
+    skip_dirs = {
+        "", "Users", "home", "root", "var", "tmp", "etc", "opt", "usr",
+        "src", "lib", "bin", "projects", "repos", "code", "workspace",
+    }
+    project_counts: Counter = Counter()
+    for p in all_paths:
+        parts = p.strip("/").split("/")
+        # Walk the path to find the first "project-like" directory
+        # Skip: root dirs, username, and generic parent dirs
+        for i, part in enumerate(parts):
+            if part in skip_dirs or part.startswith("."):
+                continue
+            # Skip the username (usually index 1 in /Users/username)
+            if i <= 1:
+                continue
+            # This is likely a project directory
+            project_counts[part] += 1
+            break
+
+    if project_counts:
+        # Return the most common project-level directory
+        name, count = project_counts.most_common(1)[0]
+        # Only use it if it appears in a meaningful number of paths
+        if count >= 2 or len(all_paths) < 5:
+            return name
+
+    return ""
+
+
 def analyze_session(
     store: SessionStore, session_id: str
 ) -> SessionReplay:
@@ -494,6 +577,12 @@ def analyze_session(
         }
     )
 
+    # Auto-detect project name if not set
+    if not metadata.project and events:
+        detected = _detect_project_name(events)
+        if detected:
+            metadata = metadata.model_copy(update={"project": detected})
+
     # Generate session summary
     if not metadata.summary and events:
         metadata = metadata.model_copy(
@@ -523,28 +612,83 @@ def _generate_session_summary(
     phases: list[TimelinePhase],
     insights: list[Insight],
 ) -> str:
-    """Generate a concise session summary."""
-    parts = []
+    """Generate a narrative session summary."""
+    if not events:
+        return "Session recorded"
 
-    # Count main activities
-    tool_counts = Counter(e.tool_name for e in events if e.tool_name)
-    all_files = set()
+    # Collect all files and extract key directories
+    all_files: set[str] = set()
     for e in events:
         all_files.update(e.files_affected)
 
-    if all_files:
-        parts.append(f"Worked on {len(all_files)} file(s)")
+    # Group files by top-level directory
+    dir_groups: dict[str, list[str]] = defaultdict(list)
+    for f in all_files:
+        parts = f.strip("/").split("/")
+        # Use the last meaningful directory or filename
+        if len(parts) >= 2:
+            dir_groups[parts[-2]].append(parts[-1])
+        else:
+            dir_groups["root"].append(parts[-1] if parts else f)
 
-    phase_counts = Counter(p.phase.value for p in phases)
-    main_phases = [p for p, _ in phase_counts.most_common(2)]
-    if main_phases:
-        parts.append(f"primarily {', '.join(main_phases)}")
+    # Build narrative from phases
+    activities: list[str] = []
+    for phase in phases:
+        phase_files = set()
+        for e in events[phase.start_index : phase.end_index + 1]:
+            phase_files.update(e.files_affected)
+        # Get short file names
+        short_files = [f.split("/")[-1] for f in phase_files][:3]
 
+        if phase.phase == SessionPhase.EXPLORATION:
+            if short_files:
+                activities.append(f"explored {', '.join(short_files)}")
+            else:
+                activities.append("explored the codebase")
+        elif phase.phase == SessionPhase.IMPLEMENTATION:
+            if short_files:
+                activities.append(f"built {', '.join(short_files)}")
+            else:
+                activities.append("implemented new code")
+        elif phase.phase == SessionPhase.DEBUGGING:
+            activities.append("debugged issues")
+        elif phase.phase == SessionPhase.TESTING:
+            activities.append("ran tests")
+        elif phase.phase == SessionPhase.CONFIGURATION:
+            if short_files:
+                activities.append(f"configured {', '.join(short_files)}")
+            else:
+                activities.append("set up configuration")
+        elif phase.phase == SessionPhase.REFACTORING:
+            activities.append("refactored code")
+        elif phase.phase == SessionPhase.DOCUMENTATION:
+            activities.append("updated documentation")
+
+    # Deduplicate while preserving order
+    seen: set[str] = set()
+    unique_activities: list[str] = []
+    for a in activities:
+        if a not in seen:
+            seen.add(a)
+            unique_activities.append(a)
+
+    # Build the narrative
+    if len(unique_activities) <= 1:
+        narrative = unique_activities[0] if unique_activities else "worked on files"
+    elif len(unique_activities) == 2:
+        narrative = f"{unique_activities[0]}, then {unique_activities[1]}"
+    else:
+        narrative = ", ".join(unique_activities[:-1]) + f", and {unique_activities[-1]}"
+
+    # Capitalize first letter
+    narrative = narrative[0].upper() + narrative[1:]
+
+    # Add error context if relevant
     error_count = sum(1 for e in events if e.event_type == EventType.ERROR)
-    if error_count:
-        parts.append(f"encountered {error_count} error(s)")
+    if error_count >= 3:
+        narrative += f" (encountered {error_count} errors along the way)"
 
-    return " | ".join(parts) if parts else "Session recorded"
+    return narrative
 
 
 def aggregate_learnings(

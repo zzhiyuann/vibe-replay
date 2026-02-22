@@ -82,13 +82,14 @@ body {
 
 /* ---- HEADER ---- */
 .header {
-  background: var(--bg-secondary);
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
   border-bottom: 1px solid var(--border);
   padding: 1.5rem 2rem;
   position: sticky;
   top: 0;
   z-index: 100;
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 .header-inner {
@@ -357,13 +358,16 @@ body {
 }
 
 .phase-events {
-  display: none;
   border-top: 1px solid var(--border-light);
   padding: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .phase-block.open .phase-events {
-  display: block;
+  max-height: 10000px;
+  transition: max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Event items */
@@ -801,6 +805,144 @@ body {
   padding: 3rem;
   color: var(--text-muted);
 }
+
+/* ---- PLAYBACK PULSE ---- */
+@keyframes playbackPulse {
+  0%, 100% { box-shadow: inset 3px 0 0 var(--accent); }
+  50% { box-shadow: inset 3px 0 0 var(--accent), 0 0 8px rgba(88,166,255,0.15); }
+}
+.event-item.playback-current {
+  animation: playbackPulse 1.5s ease-in-out infinite;
+}
+
+/* ---- KEYBOARD SHORTCUTS HELP ---- */
+.kbd-help {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 200;
+}
+.kbd-help-toggle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.kbd-help-toggle:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  transform: scale(1.05);
+}
+.kbd-help-panel {
+  display: none;
+  position: absolute;
+  bottom: 44px;
+  right: 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  width: 220px;
+  box-shadow: 0 4px 24px var(--shadow);
+}
+.kbd-help-panel.visible { display: block; }
+.kbd-help-panel h4 {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+.kbd-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.2rem 0;
+  font-size: 0.8rem;
+}
+.kbd-row kbd {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.1rem 0.4rem;
+  font-size: 0.7rem;
+  font-family: 'SF Mono', SFMono-Regular, ui-monospace, Menlo, monospace;
+  color: var(--text-secondary);
+}
+
+/* ---- ENHANCED MOBILE ---- */
+@media (max-width: 960px) {
+  .header { padding: 1rem; }
+  .header-inner { gap: 0.5rem; }
+  .header-title h1 { font-size: 1rem; }
+  .header-meta { gap: 0.75rem; }
+  .meta-item { font-size: 0.75rem; }
+  .main { padding: 1rem; gap: 1rem; }
+  .minimap { padding: 0 1rem; }
+  .event-item { padding: 0.6rem 1rem 0.6rem 2.25rem; }
+  .event-item::before { left: 1rem; }
+  .event-files { padding-left: 0; }
+  .event-details { margin-left: 0; }
+  .playback-controls { flex-wrap: wrap; }
+  .playback-progress { min-width: 100px; }
+  .kbd-help { display: none; }
+}
+
+@media (max-width: 480px) {
+  .header-meta { gap: 0.5rem; }
+  .meta-item:nth-child(n+4) { display: none; }
+  .main { padding: 0.75rem; }
+  .phase-header { padding: 0.75rem; gap: 0.5rem; }
+  .phase-icon { width: 30px; height: 30px; font-size: 0.9rem; }
+  .phase-time { display: none; }
+  .event-header { flex-wrap: wrap; }
+  .event-summary { white-space: normal; }
+  .filters { gap: 0.3rem; }
+  .filter-btn { padding: 0.25rem 0.5rem; font-size: 0.7rem; }
+  .minimap-bar { height: 20px; }
+  .minimap-legend { gap: 0.5rem; }
+  .minimap-legend-item { font-size: 0.6rem; }
+  .stat-value { font-size: 1.1rem; }
+}
+
+/* ---- SMOOTH SCROLL ---- */
+html { scroll-behavior: smooth; }
+
+/* ---- FOCUS STYLES ---- */
+.search-bar input:focus { box-shadow: 0 0 0 2px rgba(88,166,255,0.2); }
+.filter-btn:focus-visible, .playback-btn:focus-visible, .theme-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---- EVENT EXPAND INDICATOR ---- */
+.event-item::after {
+  content: '';
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid var(--text-muted);
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.3s;
+}
+.event-item:hover::after { opacity: 0.5; }
+.event-item.expanded::after {
+  opacity: 0.5;
+  transform: translateY(-50%) rotate(180deg);
+}
 </style>
 </head>
 <body>
@@ -1051,6 +1193,19 @@ body {
       {% endif %}
     </div>
   </div>
+</div>
+
+<!-- ===== KEYBOARD SHORTCUTS HELP ===== -->
+<div class="kbd-help">
+  <div class="kbd-help-panel" id="kbdPanel">
+    <h4>Keyboard Shortcuts</h4>
+    <div class="kbd-row"><span>Next event</span><kbd>J</kbd></div>
+    <div class="kbd-row"><span>Prev event</span><kbd>K</kbd></div>
+    <div class="kbd-row"><span>Play / Pause</span><kbd>Space</kbd></div>
+    <div class="kbd-row"><span>Search</span><kbd>/</kbd></div>
+    <div class="kbd-row"><span>Clear search</span><kbd>Esc</kbd></div>
+  </div>
+  <button class="kbd-help-toggle" onclick="document.getElementById('kbdPanel').classList.toggle('visible')" title="Keyboard shortcuts">?</button>
 </div>
 
 <!-- ===== FOOTER ===== -->

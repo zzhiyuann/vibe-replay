@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vibe Replay — {{ metadata.project }}</title>
+<style>
+/* ============================================================
+   Vibe Replay — Self-contained CSS
+   ============================================================ */
+
+:root {
+  /* Dark theme (default) */
+  --bg-primary:   #0d1117;
+  --bg-secondary: #161b22;
+  --bg-tertiary:  #21262d;
+  --bg-hover:     #30363d;
+  --border:       #30363d;
+  --border-light: #21262d;
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --text-muted:   #6e7681;
+  --accent:       #58a6ff;
+  --accent-dim:   #1f6feb;
+  --success:      #3fb950;
+  --warning:      #d29922;
+  --danger:       #f85149;
+  --purple:       #bc8cff;
+  --pink:         #f778ba;
+  --cyan:         #39d2c0;
+  --orange:       #f0883e;
+  --shadow:       rgba(0,0,0,0.3);
+  --code-bg:      #1a1f2b;
+  --diff-add-bg:  rgba(63,185,80,0.15);
+  --diff-del-bg:  rgba(248,81,73,0.15);
+  --diff-add-text:#3fb950;
+  --diff-del-text:#f85149;
+}
+
+[data-theme="light"] {
+  --bg-primary:   #ffffff;
+  --bg-secondary: #f6f8fa;
+  --bg-tertiary:  #eef1f5;
+  --bg-hover:     #e1e4e8;
+  --border:       #d0d7de;
+  --border-light: #e1e4e8;
+  --text-primary: #1f2328;
+  --text-secondary: #656d76;
+  --text-muted:   #8b949e;
+  --accent:       #0969da;
+  --accent-dim:   #0550ae;
+  --success:      #1a7f37;
+  --warning:      #9a6700;
+  --danger:       #cf222e;
+  --purple:       #8250df;
+  --pink:         #bf3989;
+  --cyan:         #1b7c83;
+  --orange:       #bc4c00;
+  --shadow:       rgba(0,0,0,0.08);
+  --code-bg:      #f0f2f5;
+  --diff-add-bg:  rgba(26,127,55,0.1);
+  --diff-del-bg:  rgba(207,34,46,0.1);
+  --diff-add-text:#1a7f37;
+  --diff-del-text:#cf222e;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-secondary); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ---- HEADER ---- */
+.header {
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  padding: 1.5rem 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(12px);
+}
+
+.header-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header-title .logo {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.header-title h1 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.header-title .project-name {
+  color: var(--accent);
+}
+
+.header-meta {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.meta-item {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.meta-item .value {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.theme-toggle {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  padding: 0.4rem 0.7rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+.theme-toggle:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* ---- LAYOUT ---- */
+.main {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1.5rem 2rem;
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .main { grid-template-columns: 1fr; }
+  .sidebar { order: 2; }
+}
+
+/* ---- SIDEBAR (Insights) ---- */
+.sidebar {
+  position: sticky;
+  top: 90px;
+  max-height: calc(100vh - 110px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--border-light);
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-primary);
+}
+
+.card-body {
+  padding: 1rem;
+}
+
+.insight-group { margin-bottom: 1rem; }
+.insight-group:last-child { margin-bottom: 0; }
+
+.insight-group-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.insight-item {
+  padding: 0.6rem 0.75rem;
+  border-radius: 6px;
+  margin-bottom: 0.4rem;
+  font-size: 0.85rem;
+  background: var(--bg-tertiary);
+  border-left: 3px solid transparent;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.insight-item:hover {
+  background: var(--bg-hover);
+}
+
+.insight-item[data-type="decision"]  { border-left-color: var(--accent); }
+.insight-item[data-type="learning"]  { border-left-color: var(--success); }
+.insight-item[data-type="mistake"]   { border-left-color: var(--warning); }
+.insight-item[data-type="pattern"]   { border-left-color: var(--purple); }
+.insight-item[data-type="turning_point"] { border-left-color: var(--pink); }
+
+.insight-title {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.insight-desc {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+/* Stats card */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.stat-item {
+  padding: 0.6rem;
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ---- TIMELINE ---- */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.phase-block {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.phase-block:hover {
+  border-color: var(--accent);
+}
+
+.phase-header {
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  user-select: none;
+  transition: background 0.2s;
+}
+.phase-header:hover {
+  background: var(--bg-tertiary);
+}
+
+.phase-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.phase-icon.exploration    { background: rgba(88,166,255,0.15); }
+.phase-icon.implementation { background: rgba(63,185,80,0.15); }
+.phase-icon.debugging      { background: rgba(248,81,73,0.15); }
+.phase-icon.testing        { background: rgba(210,153,34,0.15); }
+.phase-icon.refactoring    { background: rgba(188,140,255,0.15); }
+.phase-icon.configuration  { background: rgba(240,136,62,0.15); }
+.phase-icon.documentation  { background: rgba(57,210,192,0.15); }
+.phase-icon.unknown        { background: rgba(139,148,158,0.15); }
+
+.phase-info { flex: 1; min-width: 0; }
+
+.phase-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.phase-summary {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 0.15rem;
+}
+
+.phase-time {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-family: 'SF Mono', SFMono-Regular, ui-monospace, Menlo, monospace;
+}
+
+.phase-chevron {
+  color: var(--text-muted);
+  transition: transform 0.3s ease;
+  font-size: 0.8rem;
+}
+
+.phase-block.open .phase-chevron {
+  transform: rotate(90deg);
+}
+
+.phase-events {
+  display: none;
+  border-top: 1px solid var(--border-light);
+  padding: 0;
+}
+
+.phase-block.open .phase-events {
+  display: block;
+}
+
+/* Event items */
+.event-item {
+  padding: 0.7rem 1.25rem 0.7rem 3rem;
+  border-bottom: 1px solid var(--border-light);
+  font-size: 0.85rem;
+  position: relative;
+  transition: background 0.15s;
+  cursor: pointer;
+}
+.event-item:last-child { border-bottom: none; }
+.event-item:hover { background: var(--bg-tertiary); }
+
+.event-item::before {
+  content: '';
+  position: absolute;
+  left: 1.5rem;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--border);
+  transform: translateY(-50%);
+}
+
+.event-item.code_change::before { background: var(--success); }
+.event-item.error::before       { background: var(--danger); }
+.event-item.decision::before    { background: var(--accent); }
+
+.event-item.is-decision {
+  border-left: 3px solid var(--accent);
+  padding-left: calc(3rem - 3px);
+}
+.event-item.is-turning-point {
+  border-left: 3px solid var(--warning);
+  padding-left: calc(3rem - 3px);
+}
+
+.event-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.event-time {
+  font-family: 'SF Mono', SFMono-Regular, ui-monospace, Menlo, monospace;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  min-width: 65px;
+}
+
+.event-tool {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  font-family: 'SF Mono', SFMono-Regular, ui-monospace, Menlo, monospace;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  min-width: 44px;
+  text-align: center;
+}
+
+.event-summary {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.event-marker {
+  font-size: 0.7rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.event-marker.decision {
+  background: rgba(88,166,255,0.15);
+  color: var(--accent);
+}
+.event-marker.turning-point {
+  background: rgba(210,153,34,0.15);
+  color: var(--warning);
+}
+
+.event-files {
+  margin-top: 0.3rem;
+  padding-left: 65px;
+}
+
+.event-file {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-family: 'SF Mono', SFMono-Regular, ui-monospace, Menlo, monospace;
+}
+
+/* Event details (expandable) */
+.event-details {
+  display: none;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  margin-left: 65px;
+  background: var(--code-bg);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-family: 'SF Mono', SFMono-Regular, ui-monospace, Menlo, monospace;
+  overflow-x: auto;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.event-item.expanded .event-details {
+  display: block;
+}
+
+/* Code diff styling */
+.diff-line { white-space: pre; }
+.diff-add  { color: var(--diff-add-text); background: var(--diff-add-bg); }
+.diff-del  { color: var(--diff-del-text); background: var(--diff-del-bg); }
+
+/* ---- FILTERS ---- */
+.filters {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.filter-btn {
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.filter-btn:hover, .filter-btn.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+/* ---- FOOTER ---- */
+.footer {
+  max-width: 1400px;
+  margin: 2rem auto;
+  padding: 1.5rem 2rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
+}
+.footer a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.footer a:hover { text-decoration: underline; }
+
+/* ---- ANIMATIONS ---- */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.phase-block { animation: fadeIn 0.3s ease both; }
+.phase-block:nth-child(2) { animation-delay: 0.05s; }
+.phase-block:nth-child(3) { animation-delay: 0.10s; }
+.phase-block:nth-child(4) { animation-delay: 0.15s; }
+.phase-block:nth-child(5) { animation-delay: 0.20s; }
+
+/* ---- NO-DATA STATE ---- */
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-muted);
+}
+</style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header class="header">
+  <div class="header-inner">
+    <div class="header-title">
+      <span class="logo">&#127916;</span>
+      <h1>Vibe Replay &mdash; <span class="project-name">{{ metadata.project }}</span></h1>
+    </div>
+    <div class="header-meta">
+      <span class="meta-item">&#128197; <span class="value">{{ metadata.start_date }}</span></span>
+      <span class="meta-item">&#9202; <span class="value">{{ metadata.duration }}</span></span>
+      <span class="meta-item">&#9889; <span class="value">{{ metadata.event_count }} events</span></span>
+      <span class="meta-item">&#128196; <span class="value">{{ metadata.file_count }} files</span></span>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">&#9680; Theme</button>
+    </div>
+  </div>
+</header>
+
+<!-- ===== MAIN ===== -->
+<div class="main">
+
+  <!-- Sidebar: Insights + Stats -->
+  <aside class="sidebar">
+
+    <!-- Stats Card -->
+    <div class="card">
+      <div class="card-header">&#128202; Statistics</div>
+      <div class="card-body">
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-value">{{ metadata.event_count }}</div>
+            <div class="stat-label">Events</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">{{ metadata.duration }}</div>
+            <div class="stat-label">Duration</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">{{ metadata.file_count }}</div>
+            <div class="stat-label">Files</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">{{ statistics.get('code_changes', 0) }}</div>
+            <div class="stat-label">Changes</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">{{ statistics.get('errors_encountered', 0) }}</div>
+            <div class="stat-label">Errors</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">{{ phases | length }}</div>
+            <div class="stat-label">Phases</div>
+          </div>
+        </div>
+        {% if statistics.get('tools_used') %}
+        <div style="margin-top: 0.75rem;">
+          <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.35rem; font-weight: 600;">TOOLS USED</div>
+          {% for tool, count in statistics['tools_used'].items() %}
+          <div style="display: flex; justify-content: space-between; font-size: 0.8rem; padding: 0.15rem 0;">
+            <span style="font-family: monospace; color: var(--text-secondary);">{{ tool }}</span>
+            <span style="color: var(--text-muted);">{{ count }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Insights Card -->
+    {% if insights %}
+    <div class="card">
+      <div class="card-header">&#128161; Insights</div>
+      <div class="card-body">
+        {% for type_name, items in insights.items() %}
+        <div class="insight-group">
+          <div class="insight-group-title">
+            {% if type_name == "decision" %}&#127919; Decisions
+            {% elif type_name == "learning" %}&#128161; Learnings
+            {% elif type_name == "mistake" %}&#9888;&#65039; Detours
+            {% elif type_name == "pattern" %}&#128260; Patterns
+            {% elif type_name == "turning_point" %}&#128256; Turning Points
+            {% else %}{{ type_name | title }}
+            {% endif %}
+          </div>
+          {% for item in items %}
+          <div class="insight-item" data-type="{{ item.type }}">
+            <div class="insight-title">{{ item.title }}</div>
+            <div class="insight-desc">{{ item.description }}</div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+  </aside>
+
+  <!-- Main Content: Timeline -->
+  <div class="content">
+
+    {% if metadata.summary %}
+    <div class="card" style="margin-bottom: 1rem;">
+      <div class="card-body" style="font-size: 0.9rem; color: var(--text-secondary);">
+        {{ metadata.summary }}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Filters -->
+    <div class="filters">
+      <button class="filter-btn active" data-filter="all" onclick="filterEvents('all', this)">All</button>
+      <button class="filter-btn" data-filter="code_change" onclick="filterEvents('code_change', this)">Code Changes</button>
+      <button class="filter-btn" data-filter="error" onclick="filterEvents('error', this)">Errors</button>
+      <button class="filter-btn" data-filter="tool_call" onclick="filterEvents('tool_call', this)">Tool Calls</button>
+      <button class="filter-btn" data-filter="decisions" onclick="filterEvents('decisions', this)">Decisions</button>
+    </div>
+
+    <!-- Timeline -->
+    <div class="timeline">
+      {% if phases %}
+        {% for phase in phases %}
+        <div class="phase-block" data-phase="{{ phase.phase }}">
+          <div class="phase-header" onclick="togglePhase(this)">
+            <div class="phase-icon {{ phase.phase }}">
+              {% if phase.phase == "exploration" %}&#128269;
+              {% elif phase.phase == "implementation" %}&#128296;
+              {% elif phase.phase == "debugging" %}&#128027;
+              {% elif phase.phase == "testing" %}&#129514;
+              {% elif phase.phase == "refactoring" %}&#9851;&#65039;
+              {% elif phase.phase == "configuration" %}&#9881;&#65039;
+              {% elif phase.phase == "documentation" %}&#128221;
+              {% else %}&#128204;
+              {% endif %}
+            </div>
+            <div class="phase-info">
+              <div class="phase-name">{{ phase.phase_display }}</div>
+              <div class="phase-summary">{{ phase.summary }}</div>
+            </div>
+            <div class="phase-time">{{ phase.start_time }} &mdash; {{ phase.end_time }}</div>
+            <div class="phase-chevron">&#9654;</div>
+          </div>
+          <div class="phase-events">
+            {% for event in phase.events %}
+            <div class="event-item {{ event.event_type }}{% if event.index in decision_indices %} is-decision{% endif %}{% if event.index in turning_indices %} is-turning-point{% endif %}"
+                 data-event-type="{{ event.event_type }}"
+                 data-index="{{ event.index }}"
+                 onclick="toggleEvent(this)">
+              <div class="event-header">
+                <span class="event-time">{{ event.timestamp }}</span>
+                {% if event.tool_name %}
+                <span class="event-tool">{{ event.tool_name }}</span>
+                {% endif %}
+                <span class="event-summary">{{ event.summary }}</span>
+                {% if event.index in decision_indices %}
+                <span class="event-marker decision">KEY DECISION</span>
+                {% endif %}
+                {% if event.index in turning_indices %}
+                <span class="event-marker turning-point">TURNING POINT</span>
+                {% endif %}
+              </div>
+              {% if event.files_affected %}
+              <div class="event-files">
+                {% for f in event.files_affected %}
+                <span class="event-file">{{ f }}</span>
+                {% endfor %}
+              </div>
+              {% endif %}
+              <div class="event-details">
+                {% if event.has_diff %}
+                <div class="diff">
+                  {% for line in event.code_diff.split('\n') %}
+                  <div class="diff-line {% if line.startswith('+') %}diff-add{% elif line.startswith('-') %}diff-del{% endif %}">{{ line }}</div>
+                  {% endfor %}
+                </div>
+                {% else %}
+                <pre>{{ event.details_json }}</pre>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">
+          <p>No events captured for this session.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer">
+  Generated by <a href="https://github.com/zzhiyuann/vibe-replay" target="_blank">Vibe Replay</a>
+  &mdash; Capture, reflect, and share your AI coding sessions.
+</footer>
+
+<!-- ===== JAVASCRIPT ===== -->
+<script>
+/* Theme toggle */
+function toggleTheme() {
+  const html = document.documentElement;
+  const current = html.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  try { localStorage.setItem('vibe-replay-theme', next); } catch(e) {}
+}
+
+/* Restore theme from localStorage */
+(function() {
+  try {
+    const saved = localStorage.getItem('vibe-replay-theme');
+    if (saved) document.documentElement.setAttribute('data-theme', saved);
+  } catch(e) {}
+})();
+
+/* Phase expand/collapse */
+function togglePhase(header) {
+  const block = header.closest('.phase-block');
+  block.classList.toggle('open');
+}
+
+/* Event expand/collapse (show details) */
+function toggleEvent(el) {
+  el.classList.toggle('expanded');
+}
+
+/* Filter events */
+function filterEvents(type, btn) {
+  // Update button states
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const decisionIndices = new Set({{ decision_indices | tojson }});
+  const allEvents = document.querySelectorAll('.event-item');
+
+  allEvents.forEach(ev => {
+    const evType = ev.getAttribute('data-event-type');
+    const evIdx = parseInt(ev.getAttribute('data-index'));
+    let show = false;
+
+    if (type === 'all') {
+      show = true;
+    } else if (type === 'decisions') {
+      show = decisionIndices.has(evIdx);
+    } else {
+      show = evType === type;
+    }
+
+    ev.style.display = show ? '' : 'none';
+  });
+
+  // Show/hide phase blocks that have no visible events
+  document.querySelectorAll('.phase-block').forEach(block => {
+    const visibleEvents = block.querySelectorAll('.event-item:not([style*="display: none"])');
+    block.style.display = visibleEvents.length > 0 ? '' : 'none';
+  });
+}
+
+/* Open first phase by default if there are few phases */
+(function() {
+  const phases = document.querySelectorAll('.phase-block');
+  if (phases.length <= 5) {
+    phases.forEach(p => p.classList.add('open'));
+  } else if (phases.length > 0) {
+    phases[0].classList.add('open');
+  }
+})();
+</script>
+
+</body>
+</html>

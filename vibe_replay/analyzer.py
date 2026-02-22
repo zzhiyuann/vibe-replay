@@ -34,11 +34,21 @@ PHASE_INDICATORS: dict[str, list[SessionPhase]] = {
     "Grep": [SessionPhase.EXPLORATION, SessionPhase.DEBUGGING],
     "WebSearch": [SessionPhase.EXPLORATION],
     "WebFetch": [SessionPhase.EXPLORATION],
+    "ToolSearch": [SessionPhase.EXPLORATION],
+    "ListMcpResourcesTool": [SessionPhase.EXPLORATION],
+    "ReadMcpResourceTool": [SessionPhase.EXPLORATION],
     "Edit": [SessionPhase.IMPLEMENTATION, SessionPhase.REFACTORING],
     "Write": [SessionPhase.IMPLEMENTATION, SessionPhase.CONFIGURATION],
     "Bash": [SessionPhase.TESTING, SessionPhase.DEBUGGING, SessionPhase.CONFIGURATION],
     "NotebookEdit": [SessionPhase.IMPLEMENTATION],
     "Task": [SessionPhase.IMPLEMENTATION],
+    "Skill": [SessionPhase.IMPLEMENTATION],
+    "AskUserQuestion": [SessionPhase.EXPLORATION],
+    "EnterPlanMode": [SessionPhase.EXPLORATION],
+    "ExitPlanMode": [SessionPhase.IMPLEMENTATION],
+    "TaskCreate": [SessionPhase.IMPLEMENTATION],
+    "TaskUpdate": [SessionPhase.IMPLEMENTATION],
+    "TodoWrite": [SessionPhase.IMPLEMENTATION],
 }
 
 # Keywords that suggest debugging
@@ -81,7 +91,9 @@ def _detect_phase_from_event(event: Event) -> SessionPhase:
         return SessionPhase.DOCUMENTATION
 
     # Use tool-based heuristic
-    phases = PHASE_INDICATORS.get(tool, [SessionPhase.UNKNOWN])
+    # Default to IMPLEMENTATION for unknown tools rather than UNKNOWN,
+    # since most unrecognized tools are doing productive work
+    phases = PHASE_INDICATORS.get(tool, [SessionPhase.IMPLEMENTATION])
     return phases[0]
 
 
